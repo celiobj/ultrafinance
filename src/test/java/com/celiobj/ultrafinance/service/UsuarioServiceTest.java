@@ -3,33 +3,44 @@ package com.celiobj.ultrafinance.service;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.celiobj.ultrafinance.exception.RegraNegocioException;
 import com.celiobj.ultrafinance.model.entity.Usuario;
 import com.celiobj.ultrafinance.model.repository.UsuarioRepository;
+import com.celiobj.ultrafinance.service.impl.UsuarioServiceImpl;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest
 @ActiveProfiles("test")
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = Replace.NONE)
 public class UsuarioServiceTest {
 
-	@Autowired
 	UsuarioService service;
-
-	@Autowired
+	
+	@MockBean
 	UsuarioRepository repository;
+
+	@Before
+	public void setUp() {
+		service = new UsuarioServiceImpl(repository);
+	}
 
 	@Test
 	public void deveValidarEmail() {
 
 		// cenario
-		repository.deleteAll();
+		Mockito.when(repository.existsByEmail(Mockito.anyString())).thenReturn(false);
 
 		// acao
 		service.validarEmail("email@email.com");
@@ -40,7 +51,7 @@ public class UsuarioServiceTest {
 	public void deveLancarErroAoValidarEmailQuandoExistirEmailCadastrado() {
 
 		// cenario
-		repository.deleteAll();
+		Mockito.when(repository.existsByEmail(Mockito.anyString())).thenReturn(false);
 
 		// acao
 		Exception exception = assertThrows(RegraNegocioException.class, () -> {
